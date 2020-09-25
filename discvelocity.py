@@ -71,8 +71,9 @@ def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
         time.sleep(rate)
         try:
             sessionframe = get_session_frame(apiurl)
-            json.dump(sessionframe, recordfp)
-            recordfp.write('\n')
+            if recordpath:
+                json.dump(sessionframe, recordfp)
+                recordfp.write('\n')
         except requests.exceptions.ConnectionError:
             click.echo('Connection failed. Retrying... ')
             time.sleep(1)
