@@ -1,87 +1,110 @@
 #!/usr/bin/env python3
+""" echochrono.py: Echo Arena Chronograph for Oculus Quest """
+
+__author__ = 'Andrew Bates <a@sprock.io>'
+
 import requests
 import json
 import time
 import math
 import datetime
-from pyfiglet import Figlet
-import click
+import tempfile
 
+import requests
 import pyttsx3
+import click
+from pyfiglet import Figlet
 
 
-
-engine = pyttsx3.init()
-
-def vel2speed(vel):
+def vector_coords_to_speed(vel):
+    """ Convert 3D vector velocities into a linear velocity. """
     return round(math.sqrt(vel[0]**2 + vel[1]**2 + vel[2]**2),2)
 
-
-
-def get_telemetry():
-    r = requests.get('http://10.0.1.113:6721/session')
+def get_session_frame(url):
+    """ Retrieve and return the session json object from the oculus quest API at
+    url """
+    r = requests.get(url)
     try:
-        j = json.loads(r.text)
+        return json.loads(r.text)
     except json.decoder.JSONDecodeError:
-        print('Invalid json.')
+        click.echo('Invalid json.')
         return {}
-    return j
 
-def parse_disc_speed(telemetry):
-    velocity = telemetry['disc']['velocity']
-    speed = vel2speed(velocity)
-    return speed
+def _get_possession(frame):
+    """ Return the name of the player with posession of the disc """
+    for t in frame['teams']:
+        if 'players' in t:
+            for p in t['players']:
+                if p.get('possession'):
+                    return p['name']
+    return 'None'
 
-def print_big(text, font='doh'):
-    f = Figlet(font=font)
-    return f.renderText(str(text))
-
-
-def speak(text):
-    engine.say(text)
-    engine.runAndWait()
-
-@click.option('-r', '--rate', help='refresh rate', type=float, default=0.5)
-@click.option('-m', '--minjspeed', 'minspeed',
-              help='Minimum disc speed to detect a shot', type=float, default=7)
-@click.option('-l', '--log-frames', 'logframes', is_flag=True, default=True)
+@click.argument('questhost', metavar='HOST')
+@click.option('-r', '--rate', help='refresh rate', type=float, default=0.25)
+@click.option('-m', '--minimum-speed', 'minspeed',
+              help='Minimum disc speed to read out', type=float,
+              show_default=True, default=10.0)
+@click.option('--stability-tolerance', 'tolerance', type=float, default=0.1)
+@click.option('--tts/--no-tts', 'dotts', is_flag=True, default=True,
+              help='Enable/Disable text-to-speech')
+@click.option('--banner/--no-banner', 'showbanner', is_flag=True, default=True,
+              help='Enable/Disable displaying velocity in large letters')
+@click.option('--font', default='doh')
+@click.option('-R','--record', 'recordpath', type=click.Path(),
+              metavar='FILEPATH', help='Record session frames to FILEPATH')
+@click.option('--figlet-font', 'font', metavar='FONTNAME', default='doh',
+              help='figlet font to use for banner')
 @click.command()
-def main(rate, minspeed, logframes):
-    if logframes:
-        print ('Logging frames')
-        framelog = open(datetime.datetime.now().strftime('%Y%m%d-%H:%M:%S.json'), 'w')
-    recent = []
+def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
+         recordpath, engine=pyttsx3.init()):
+    """ Main console script """
+    speeds = []
+
+    if recordpath:
+        click.echo('Writing session frames to {}'.format(recordpath))
+        recordfp = open(recordpath, 'a')
+
+    apiurl = 'http://{}:6721/session'.format(questhost)
+    click.echo('Using Echo Arena API at {}'.format(apiurl))
+
     while True:
         time.sleep(rate)
         try:
-            telemetry = get_telemetry()
-            if logframes:
-                json.dump(telemetry, framelog)
-
+            sessionframe = get_session_frame(apiurl)
+            json.dump(sessionframe, recordfp)
+            recordfp.write('\n')
         except requests.exceptions.ConnectionError:
-            print('Connection failed. Retrying... ')
+            click.echo('Connection failed. Retrying... ')
+            time.sleep(1)
             continue
 
-
-        if 'disc' not in telemetry:
-            print('No disc telemetry')
+        if 'disc' not in sessionframe:
+            click.echo('No disc velocity found in session frame.'
+                       " Waiting for match start?")
+            time.sleep(1)
             continue
 
-        if telemetry['disc']['bounce_count'] > 0:
+        speed = vector_coords_to_speed(sessionframe['disc']['velocity'])
+
+        speeds = speeds[-10:] + [speed]
+
+        if len(speeds) < 3:
             continue
-        speed = parse_disc_speed(telemetry)
-        recent = recent[-10:] + [speed]
 
-        if len(recent) < 3:
-            continue
+        if sessionframe['disc']['bounce_count'] == 0 \
+                and speed >= minspeed \
+                and abs(speed - speeds[-2]) <= tolerance:
 
-        accel = recent[-1] - recent[-2]
-        delta = speed - min(recent[-5:-1])
+            player = _get_possession(sessionframe)
+            click.echo('{:.1f} m/s by {}'.format(speed, player))
+            if showbanner:
+                click.echo()
+                bannertext = '{:.1f}'.format(speed)
+                click.echo(Figlet(font=font).renderText(str(bannertext)))
 
-        if delta > minspeed:
-            click.echo()
-            click.echo(print_big('{:.1f}'.format(speed)), color='green')
-            speak('{:.1f}'.format(speed))
+            if dotts:
+                engine.say('{:.1f}'.format(speed))
+                engine.runAndWait()
         #click.echo(print_big('{:.1f}'.format(speed)), color='green')
 
 
