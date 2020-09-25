@@ -1,0 +1,4 @@
+requests
+pytts3
+pyfiglet
+click
