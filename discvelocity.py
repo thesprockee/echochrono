@@ -59,6 +59,7 @@ def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
          recordpath, engine=pyttsx3.init()):
     """ Main console script """
     speeds = []
+    armed = True
 
     if recordpath:
         click.echo('Writing session frames to {}'.format(recordpath))
@@ -92,11 +93,15 @@ def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
         if len(speeds) < 3:
             continue
 
-        if sessionframe['disc']['bounce_count'] == 0 \
+        if speed < speeds[-2]:
+            armed = True
+
+        if armed and sessionframe['disc']['bounce_count'] == 0 \
                 and speed >= minspeed \
                 and abs(speed - speeds[-2]) <= tolerance:
 
             player = _get_possession(sessionframe)
+
             click.echo('{:.1f} m/s by {}'.format(speed, player))
             if showbanner:
                 click.echo()
@@ -106,6 +111,8 @@ def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
             if dotts:
                 engine.say('{:.1f}'.format(speed))
                 engine.runAndWait()
+                armed = False
+
         #click.echo(print_big('{:.1f}'.format(speed)), color='green')
 
 
