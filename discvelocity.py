@@ -57,7 +57,8 @@ def _get_possession(frame):
 @click.command()
 def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
          recordpath, engine=pyttsx3.init()):
-    """ Main console script """
+    """ Chronograph for Echo Arena on the Oculus Quest """
+
     speeds = []
     armed = True
 
