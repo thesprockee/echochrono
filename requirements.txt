@@ -1,4 +1,4 @@
 requests
-pytts3
+pyttsx3
 pyfiglet
 click
