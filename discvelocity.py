@@ -39,7 +39,8 @@ def _get_possession(frame):
                     return p['name']
     return 'None'
 
-@click.argument('questhost', metavar='HOST')
+
+@click.argument('questhost', metavar='<QUEST IP>')
 @click.option('-r', '--rate', help='refresh rate', type=float, default=0.25)
 @click.option('-m', '--minimum-speed', 'minspeed',
               help='Minimum disc speed to read out', type=float,
@@ -54,7 +55,8 @@ def _get_possession(frame):
               metavar='FILEPATH', help='Record session frames to FILEPATH')
 @click.option('--figlet-font', 'font', metavar='FONTNAME', default='doh',
               help='figlet font to use for banner')
-@click.command()
+@click.command(context_settings=dict(show_default=True,
+                                     help_option_names=['-h', '--help']))
 def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
          recordpath, engine=pyttsx3.init()):
     """ Chronograph for Echo Arena on the Oculus Quest """
