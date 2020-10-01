@@ -67,14 +67,23 @@ def _get_possession(frame):
               metavar='FILEPATH', help='Record session frames to FILEPATH')
 @click.option('--banner-font', 'font', metavar='figlet font', default='doh',
               help='figlet font to use for banner')
+@click.option('--debug', 'debug', is_flag=True, default=False,
+              help='Print lots of extra debug messages')
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
 def main(questhost, rate, minspeed, notts, nobanner, tolerance, font,
-         recordpath, engine=pyttsx3.init()):
+         recordpath, debug, engine=pyttsx3.init()):
     """ Chronograph for Echo Arena on the Oculus Quest """
 
     speeds = []
     armed = True
+
+    if debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+
+    apiurl = 'http://{}:6721/session'.format(questhost)
+    click.echo('Using Echo Arena API at {}'.format(apiurl))
 
     if recordpath:
         click.echo('Writing session frames to {}'.format(recordpath))
@@ -106,6 +115,7 @@ def main(questhost, rate, minspeed, notts, nobanner, tolerance, font,
 
         speed = vector_coords_to_speed(sessionframe['disc']['velocity'])
 
+        log.debug('Current disk speed is {:.1f} m/s'.format(speed))
         speeds = speeds[-10:] + [speed]
 
         if len(speeds) < 3:
