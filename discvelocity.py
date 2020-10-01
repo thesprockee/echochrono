@@ -49,7 +49,8 @@ def _get_possession(frame):
 
 
 @click.argument('questhost', metavar='<QUEST IP>')
-@click.option('-r', '--rate', help='refresh rate', type=float, default=0.25)
+@click.option('-r', '--rate', help='Disc velocity update/refresh rate in Hz',
+              type=float, metavar='HERTZ',  default=5)
 @click.option('-m', '--minimum-speed', 'minspeed',
               help='Minimum disc speed to read out', type=float,
               show_default=True, default=10.0)
@@ -81,7 +82,9 @@ def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
     click.echo('Using Echo Arena API at {}'.format(apiurl))
 
     while True:
-        time.sleep(rate)
+
+        time.sleep(1.0/refreshrate)
+
         try:
             sessionframe = get_session_frame(apiurl)
             if recordpath:
