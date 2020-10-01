@@ -55,18 +55,19 @@ def _get_possession(frame):
               help='Minimum disc speed to read out', type=float,
               show_default=True, default=10.0)
 @click.option('--stability-tolerance', 'tolerance', type=float, default=0.1)
-@click.option('--tts/--no-tts', 'dotts', is_flag=True, default=True,
+@click.option('--no-tts', 'notts', is_flag=True, default=False,
               help='Enable/Disable text-to-speech')
-@click.option('--banner/--no-banner', 'showbanner', is_flag=True, default=True,
+@click.option('--no-banner', 'nobanner', is_flag=True, default=False,
               help='Enable/Disable displaying velocity in large letters')
-@click.option('--font', default='doh')
+@click.option('--font', help='Figlet font to display speeds with',
+              metavar='font name', default='doh')
 @click.option('-R','--record', 'recordpath', type=click.Path(),
               metavar='FILEPATH', help='Record session frames to FILEPATH')
-@click.option('--figlet-font', 'font', metavar='FONTNAME', default='doh',
+@click.option('--banner-font', 'font', metavar='figlet font', default='doh',
               help='figlet font to use for banner')
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
-def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
+def main(questhost, rate, minspeed, notts, nobanner, tolerance, font,
          recordpath, engine=pyttsx3.init()):
     """ Chronograph for Echo Arena on the Oculus Quest """
 
@@ -118,12 +119,12 @@ def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
             player = _get_possession(sessionframe)
 
             click.echo('{:.1f} m/s by {}'.format(speed, player))
-            if showbanner:
+            if not nobanner:
                 click.echo()
                 bannertext = '{:.1f}'.format(speed)
                 click.echo(Figlet(font=font).renderText(str(bannertext)))
 
-            if dotts:
+            if not notts:
                 engine.say('{:.1f}'.format(speed))
                 engine.runAndWait()
                 armed = False
