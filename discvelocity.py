@@ -15,6 +15,11 @@ import pyttsx3
 import click
 from pyfiglet import Figlet
 
+import logging
+
+log = logging.getLogger(__name__)
+
+logging.basicConfig(level=logging.WARNING)
 
 def vector_coords_to_speed(vel):
     """ Convert 3D vector velocities into a linear velocity. """
@@ -23,10 +28,13 @@ def vector_coords_to_speed(vel):
 def get_session_frame(url):
     """ Retrieve and return the session json object from the oculus quest API at
     url """
+    log.debug('sending request to {}'.format(url))
     r = requests.get(url)
     try:
         return json.loads(r.text)
-    except json.decoder.JSONDecodeError:
+    except json.decoder.JSONDecodeError as e:
+        log.error('Invalid json')
+        log.debug('JSON decode error: {}'.format(e))
         click.echo('Invalid json.')
         return {}
 
@@ -66,6 +74,7 @@ def main(questhost, rate, minspeed, dotts, showbanner, tolerance, font,
 
     if recordpath:
         click.echo('Writing session frames to {}'.format(recordpath))
+        log.info('Writing session frames to {}'.format(recordpath))
         recordfp = open(recordpath, 'a')
 
     apiurl = 'http://{}:6721/session'.format(questhost)
