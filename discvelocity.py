@@ -28,8 +28,10 @@ def vector_coords_to_speed(vel):
 def get_session_frame(url):
     """ Retrieve and return the session json object from the oculus quest API at
     url """
-    log.debug('sending request to {}'.format(url))
     r = requests.get(url)
+    if r.status_code == 404:
+        log.warning('No session. In lobby?')
+        return {}
     try:
         return json.loads(r.text)
     except json.decoder.JSONDecodeError as e:
