@@ -141,6 +141,8 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
         try:
             sessionframe = get_session_frame(apiurl)
             if recordpath:
+                recordfp.write(
+                    datetime.datetime.now().isoformat() + ' ')
                 json.dump(sessionframe, recordfp)
                 recordfp.write('\n')
         except requests.exceptions.ConnectionError:
