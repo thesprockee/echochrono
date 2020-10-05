@@ -150,6 +150,11 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
             time.sleep(1)
             continue
 
+        if  sessionframe.get('match_type', '').startswith('Social'):
+            click.echo('Lobby detected. waiting for match start...')
+            time.sleep(3)
+            continue
+
         if 'disc' not in sessionframe:
             click.echo('No disc velocity found in session frame.'
                        " Waiting for match start?")
