@@ -19,11 +19,18 @@ import logging
 
 log = logging.getLogger(__name__)
 
-logging.basicConfig(level=logging.WARNING)
+
+def _setup_logging():
+    """ Configure loggers """
+    FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.WARNING)
+    return logging.getLogger(__name__)
+
 
 def vector_coords_to_speed(vel):
     """ Convert 3D vector velocities into a linear velocity. """
     return round(math.sqrt(vel[0]**2 + vel[1]**2 + vel[2]**2),2)
+
 
 def get_session_frame(url):
     """ Retrieve and return the session json object from the oculus quest API at
