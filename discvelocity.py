@@ -181,9 +181,8 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
 
             click.echo('{:.1f} m/s by {}'.format(speed, player))
             if not nobanner:
-                click.echo()
-                bannertext = '{:.1f}'.format(speed)
-                click.echo(Figlet(font=font).renderText(str(bannertext)))
+                click.echo(Figlet(font='big').renderText(
+                    '{speed:.2f}: {player}'.format(speed=speed, player=player)))
 
             if not notts:
                 _engine.say('{:.1f}'.format(speed))
