@@ -116,6 +116,7 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
 
 
     speeds = []
+    players = {}
     armed = True
 
     if debug:
@@ -169,6 +170,7 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
                 and abs(speed - speeds[-2]) <= tolerance:
 
             player = _get_possession(sessionframe)
+            players.setdefault(player, []).append(speed)
 
             click.echo('{:.1f} m/s by {}'.format(speed, player))
             if not nobanner:
