@@ -165,13 +165,13 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
                 and speed >= minspeed \
                 and abs(speed - speeds[-2]) <= tolerance:
 
-            player = _get_possession(sessionframe)
+            player = _get_player_with_possession(sessionframe)
             players.setdefault(player, []).append(speed)
 
             click.echo('{:.2f} m/s by {}'.format(speed, player))
             if not showbanner:
                 click.echo(Figlet(font='big').renderText(
-                    '{speed:.2f}: {player}'.format(speed=speed, player=player)))
+                    '{speed:.1f}: {player}'.format(speed=speed, player=player)))
 
             if dotts:
                 _engine.say('{:.1f}'.format(speed))
