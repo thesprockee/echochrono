@@ -81,37 +81,31 @@ class Chronograph(object):
 @click.argument('questhost', metavar='<QUEST IP>')
 @click.option('-r', '--refresh-rate', 'refreshrate', help='Disc velocity update/refresh rate in Hz',
               type=float, metavar='HERTZ',  default=5)
-@click.option('-m', '--minimum-speed', 'minspeed',
+@click.option('-m', '--min-speed', 'minspeed',
               help='Minimum disc speed to read out', type=float,
               show_default=True, default=10.0)
 @click.option('--stability-tolerance', 'tolerance', type=float, default=0.1)
-@click.option('--no-tts', 'notts', is_flag=True, default=False,
-              help='Enable/Disable text-to-speech')
-@click.option('--no-banner', 'nobanner', is_flag=True, default=False,
-              help='Enable/Disable displaying velocity in large letters')
-@click.option('--font', help='Figlet font to display speeds with',
-              metavar='font name', default='doh')
-@click.option('-R','--record', 'recordpath', type=click.Path(),
-              metavar='FILEPATH', help='Record session frames to FILEPATH')
+@click.option('--no-banner', 'showbanner', is_flag=True, default=False,
+              help='Disable displaying velocity in large letters')
 @click.option('--banner-font', 'font', metavar='figlet font', default='doh',
               help='figlet font to use for banner')
+@click.option('-R','--record', 'recordpath', type=click.Path(),
+              metavar='FILEPATH', help='Record session frames to FILEPATH')
 @click.option('--debug', 'debug', is_flag=True, default=False,
               help='Print lots of extra debug messages')
+@click.option('--no-tts', 'dotts', is_flag=True, default=False,
+              help="Disable text-to-speech")
 @click.option('--tts-options', 'ttsoptions', default='rate=125',
               help='TTS engine options')
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
-def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
+def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
          recordpath, debug, ttsoptions, _engine=pyttsx3.init()):
     """ Chronograph for Echo Arena on the Oculus Quest """
 
-    if not notts:
-        for prop, val in [s.strip().split('=') for s in ttsoptions.split(',')]:
-            prop = prop.strip()
-            val = val.strip()
-            val = float(val) if val.isdecimal() else val
+    if dotts:
+        for (p, v) in _parse_delimited_options(ttsoptions, _engine):
             _engine.setProperty(prop, val)
-
 
     speeds = []
     players = {}
@@ -128,9 +122,6 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
         click.echo('Writing session frames to {}'.format(recordpath))
         log.info('Writing session frames to {}'.format(recordpath))
         recordfp = open(recordpath, 'a')
-
-    apiurl = 'http://{}:6721/session'.format(questhost)
-    click.echo('Using Echo Arena API at {}'.format(apiurl))
 
     while True:
 
@@ -177,15 +168,26 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
             player = _get_possession(sessionframe)
             players.setdefault(player, []).append(speed)
 
-            click.echo('{:.1f} m/s by {}'.format(speed, player))
-            if not nobanner:
+            click.echo('{:.2f} m/s by {}'.format(speed, player))
+            if not showbanner:
                 click.echo(Figlet(font='big').renderText(
                     '{speed:.2f}: {player}'.format(speed=speed, player=player)))
 
-            if not notts:
+            if dotts:
                 _engine.say('{:.1f}'.format(speed))
                 _engine.runAndWait()
                 armed = False
+
+def _parse_delimited_options(ttsoptions, _engine):
+    """ Parse and return options into key,value pairs. """
+    options = []
+    for prop, val in [s.strip().split('=') for s in ttsoptions.split(',')]:
+        prop = prop.strip()
+        val = val.strip()
+        val = float(val) if val.isdecimal() else val
+        options[prop] = val
+
+    return options
 
         #click.echo(print_big('{:.1f}'.format(speed)), color='green')
 
