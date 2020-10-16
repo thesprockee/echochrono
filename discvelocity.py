@@ -9,20 +9,18 @@ import time
 import math
 import datetime
 import tempfile
+import logging
 
 import requests
 import pyttsx3
 import click
 from pyfiglet import Figlet
 
-import logging
-
-log = logging.getLogger(__name__)
 
 
 def _setup_logging():
     """ Configure loggers """
-    FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
+    FORMAT = '%(asctime)-15s %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.WARNING)
     return logging.getLogger(__name__)
 
@@ -193,4 +191,5 @@ def main(questhost, refreshrate, minspeed, notts, nobanner, tolerance, font,
 
 
 if __name__ =='__main__':
+    log = _setup_logging()
     main()
