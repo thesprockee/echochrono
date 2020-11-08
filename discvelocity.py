@@ -169,7 +169,7 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
             players.setdefault(player, []).append(speed)
 
             click.echo('{:.2f} m/s by {}'.format(speed, player))
-            if not showbanner:
+            if showbanner:
                 click.echo(Figlet(font='big').renderText(
                     '{speed:.1f}: {player}'.format(speed=speed, player=player)))
 
@@ -188,8 +188,6 @@ def _parse_delimited_options(ttsoptions, _engine):
         options[prop] = val
 
     return options
-
-        #click.echo(print_big('{:.1f}'.format(speed)), color='green')
 
 
 if __name__ =='__main__':
