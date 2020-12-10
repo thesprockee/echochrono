@@ -101,12 +101,16 @@ class Chronograph(object):
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
 def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
-         recordpath, debug, ttsoptions, _engine=pyttsx3.init()):
+         recordpath, debug, ttsoptions, output, _engine=pyttsx3.init()):
     """ Chronograph for Echo Arena on the Oculus Quest """
 
     if dotts:
-        for (p, v) in _parse_delimited_options(ttsoptions, _engine):
+        for prop, val in [s.strip().split('=') for s in ttsoptions.split(',')]:
+            prop = prop.strip()
+            val = val.strip()
+            val = float(val) if val.isdecimal() else val
             _engine.setProperty(prop, val)
+
 
     speeds = []
     players = {}
@@ -169,15 +173,21 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
             player = _get_player_with_possession(sessionframe)
             players.setdefault(player, []).append(speed)
 
-            click.echo('{:.2f} m/s by {}'.format(speed, player))
-            if showbanner:
-                click.echo(Figlet(font='big').renderText(
-                    '{speed:.1f}: {player}'.format(speed=speed, player=player)))
+            speedmsg = '{:.2f} m/s by {}'.format(speed, player)
+            click.echo(speedmsg)
 
-            if dotts:
-                _engine.say('{:.1f}'.format(speed))
-                _engine.runAndWait()
-                armed = False
+            if output:
+                with open(output,'a') as outputfp:
+
+                    if showbanner:
+                        click.echo(Figlet(font='big').renderText(
+                            '{speed:.1f}: {player}'.format(speed=speed,
+                                                           player=player)))
+
+                    if dotts:
+                        _engine.say('{:.1f}'.format(speed))
+                        _engine.runAndWait()
+                    armed = False
 
 def _parse_delimited_options(ttsoptions, _engine):
     """ Parse and return options into key,value pairs. """
