@@ -17,7 +17,6 @@ import click
 from pyfiglet import Figlet
 
 
-
 def _setup_logging():
     """ Configure loggers """
     FORMAT = '%(asctime)-15s %(message)s'
@@ -38,7 +37,9 @@ def get_session_frame(url):
         log.warning('No session. In lobby?')
         return {}
     try:
-        return json.loads(r.text)
+        # fix bug when private arena is restarted
+        s = r.text.replace('-nan.','')
+        return json.loads(s)
     except json.decoder.JSONDecodeError as e:
         log.error('Invalid json')
         log.debug('JSON decode error: {}'.format(e))
