@@ -68,7 +68,7 @@ def _relative_velocity(vel1, vel2):
 @click.option('--stability-tolerance', 'tolerance', type=float, default=0.1)
 @click.option('--banner', 'showbanner', is_flag=True, default=False,
               help='Disable displaying velocity in large letters')
-@click.option('--banner-font', 'font', metavar='figlet font', default='doh',
+@click.option('--banner-font', 'font', metavar='figlet font', default='banner3',
               help='figlet font to use for banner')
 @click.option('-R','--record', 'recordpath', type=click.Path(),
               metavar='FILEPATH', help='Record session frames to FILEPATH')
