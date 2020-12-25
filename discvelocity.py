@@ -34,7 +34,7 @@ def get_session_frame(url):
     url """
     r = requests.get(url)
     if r.status_code == 404:
-        log.warning('No session. In lobby?')
+        log.warning('No session data. API returned 404.')
         return {}
     try:
         # fix bug when private arena is restarted
@@ -43,8 +43,8 @@ def get_session_frame(url):
     except json.decoder.JSONDecodeError as e:
         log.error('Invalid json')
         log.debug('JSON decode error: {}'.format(e))
-        click.echo('Invalid json.')
         return {}
+
 
 def _get_player_with_possession(frame):
     """ Return the name of the player with posession of the disc """
