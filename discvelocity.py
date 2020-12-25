@@ -51,33 +51,13 @@ def _get_player_with_possession(frame):
     for t in frame['teams']:
         for p in t.get('players',[]):
             if p.get('possession'):
-                return p['name']
-    return None
+                return p
+    return {}
 
 
-class Chronograph(object):
-
-    def __init__(self, recordpath=None,):
-        self.speeds = []
-        self.players = {}
-        self.armed = True
-
-    def loop(self, object):
-       Screen.wrapper(self.display_loop)
-
-    def display_loop(self, screen):
-        while True:
-            for n, playerspeed in enumerate(self.players):
-
-                screen.print_at(
-                    FigletText("14.3", font='doh'),
-                    n, 0,
-                )
-
-                screen.refresh()
-
-
-
+def _relative_velocity(vel1, vel2):
+    """ Return x,y,z velocities for vel2 relative to vel1 """
+    return [ v1 - v2 for (v1, v2) in zip(vel1, vel2)]
 
 @click.argument('questhost', metavar='<QUEST IP>')
 @click.option('-r', '--refresh-rate', 'refreshrate', help='Disc velocity update/refresh rate in Hz',
@@ -99,10 +79,12 @@ class Chronograph(object):
 @click.option('--tts-options', 'ttsoptions', default='rate=125',
               help='TTS engine options')
 @click.option('--output', help='Output speeds to FILEPATH')
+@click.option('--throw-speed', '-T', 'throwspeed', is_flag=True, default=False,
+              help='Announce speed relative to player (throw speed)')
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
 def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
-         recordpath, debug, ttsoptions, output, _engine=pyttsx3.init()):
+         recordpath, debug, ttsoptions, output, throwspeed, _engine=pyttsx3.init()):
     """ Chronograph for Echo Arena on the Oculus Quest """
 
     if dotts:
@@ -132,6 +114,8 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
     if output:
         outputfp = open(output,'a')
 
+    velocities = [0,0,0]
+
     while True:
 
         time.sleep(1.0/refreshrate)
@@ -149,50 +133,63 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
             continue
 
         if  sessionframe.get('match_type', '').startswith('Social'):
-            click.echo('Lobby detected. waiting for match start...')
+            click.echo('Lobby detected. waiting for match join...')
             time.sleep(3)
             continue
 
         if 'disc' not in sessionframe:
-            click.echo('No disc velocity found in session frame.'
-                       " Waiting for match start?")
+            click.echo('No disc velocity detected. Match must be started.')
             time.sleep(1)
             continue
 
-        speed = vector_coords_to_speed(sessionframe['disc']['velocity'])
+        velprev = [round(v,2) for v in velocities]
+        velocities = [round(v, 2) for v in sessionframe['disc']['velocity']]
 
-        log.debug('Current disk speed is {:.1f} m/s'.format(speed))
-        speeds = speeds[-10:] + [speed]
-
-        if len(speeds) < 3:
-            continue
-
-        if speed < speeds[-2]:
+        if velocities != velprev:
             armed = True
 
-        if armed and sessionframe['disc']['bounce_count'] == 0 \
-                and speed >= minspeed \
-                and abs(speed - speeds[-2]) <= tolerance:
+        speed = vector_coords_to_speed(velocities)
 
+        log.debug('Current disk speed is {:.1f} m/s'.format(speed))
+
+
+        speeds = speeds[-10:] + [speed]
+
+        if len(speeds) < 2 or sessionframe['disc']['bounce_count']: continue
+
+        if armed and speed >= minspeed and abs(speed - speeds[-2]) <= tolerance:
             armed = False
-            player = _get_player_with_possession(sessionframe)
+
+            playerdata = _get_player_with_possession(sessionframe)
+
+            relativevelocities = _relative_velocity(
+                playerdata.get('velocity', [0,0,0]),
+                sessionframe['disc']['velocity'])
+
+            relativespeed = vector_coords_to_speed(relativevelocities)
+            player = playerdata.get('name', 'N/A')
             players.setdefault(player, []).append(speed)
 
-            speedmsg = '{:.2f} m/s by {}'.format(speed, player)
+            if playerdata:
+                speedmsg = '{:.2f} m/s by {} (thrown at {:.2f} m/s)'.format(
+                    speed, player or 'N/A', relativespeed)
+            else:
+                speedmsg = '{:.2f} m/s'.format(speed)
+
             click.echo(speedmsg)
 
             if output:
-
                 outputfp.write(speedmsg + '\n')
                 outputfp.flush()
 
             if showbanner:
-                click.echo(Figlet(font='big').renderText(
-                    '{speed:.1f}: {player}'.format(speed=speed,
+                click.echo(Figlet(font=font, width=140).renderText(
+                    '{speed:.1f}: {player}'.format(speed=relativespeed if
+                                                   throwspeed else speed,
                                                     player=player)))
 
             if dotts:
-                _engine.say('{:.1f}'.format(speed))
+                _engine.say('{:.1f}'.format(relativespeed if throwspeed else speed))
                 _engine.runAndWait()
 
 def _parse_delimited_options(ttsoptions, _engine):
