@@ -98,6 +98,7 @@ class Chronograph(object):
               help="Disable text-to-speech")
 @click.option('--tts-options', 'ttsoptions', default='rate=125',
               help='TTS engine options')
+@click.option('--output', help='Output speeds to FILEPATH')
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
 def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
@@ -127,6 +128,9 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
         click.echo('Writing session frames to {}'.format(recordpath))
         log.info('Writing session frames to {}'.format(recordpath))
         recordfp = open(recordpath, 'a')
+
+    if output:
+        outputfp = open(output,'a')
 
     while True:
 
@@ -170,6 +174,7 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
                 and speed >= minspeed \
                 and abs(speed - speeds[-2]) <= tolerance:
 
+            armed = False
             player = _get_player_with_possession(sessionframe)
             players.setdefault(player, []).append(speed)
 
@@ -177,12 +182,9 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
             click.echo(speedmsg)
 
             if output:
-                with open(output,'a') as outputfp:
 
-                    if showbanner:
-                        click.echo(Figlet(font='big').renderText(
-                            '{speed:.1f}: {player}'.format(speed=speed,
-                                                           player=player)))
+                outputfp.write(speedmsg + '\n')
+                outputfp.flush()
 
             if showbanner:
                 click.echo(Figlet(font='big').renderText(
