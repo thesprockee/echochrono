@@ -86,7 +86,7 @@ class Chronograph(object):
               help='Minimum disc speed to read out', type=float,
               show_default=True, default=10.0)
 @click.option('--stability-tolerance', 'tolerance', type=float, default=0.1)
-@click.option('--no-banner', 'showbanner', is_flag=True, default=True,
+@click.option('--banner', 'showbanner', is_flag=True, default=False,
               help='Disable displaying velocity in large letters')
 @click.option('--banner-font', 'font', metavar='figlet font', default='doh',
               help='figlet font to use for banner')
@@ -94,7 +94,7 @@ class Chronograph(object):
               metavar='FILEPATH', help='Record session frames to FILEPATH')
 @click.option('--debug', 'debug', is_flag=True, default=False,
               help='Print lots of extra debug messages')
-@click.option('--no-tts', 'dotts', is_flag=True, default=True,
+@click.option('--tts', 'dotts', is_flag=True, default=False,
               help="Disable text-to-speech")
 @click.option('--tts-options', 'ttsoptions', default='rate=125',
               help='TTS engine options')
@@ -184,10 +184,14 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
                             '{speed:.1f}: {player}'.format(speed=speed,
                                                            player=player)))
 
-                    if dotts:
-                        _engine.say('{:.1f}'.format(speed))
-                        _engine.runAndWait()
-                    armed = False
+            if showbanner:
+                click.echo(Figlet(font='big').renderText(
+                    '{speed:.1f}: {player}'.format(speed=speed,
+                                                    player=player)))
+
+            if dotts:
+                _engine.say('{:.1f}'.format(speed))
+                _engine.runAndWait()
 
 def _parse_delimited_options(ttsoptions, _engine):
     """ Parse and return options into key,value pairs. """
