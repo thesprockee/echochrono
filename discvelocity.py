@@ -66,20 +66,20 @@ def _relative_velocity(vel1, vel2):
               help='Minimum disc speed to read out', type=float,
               show_default=True, default=10.0)
 @click.option('--stability-tolerance', 'tolerance', type=float, default=0.1)
-@click.option('--banner', 'showbanner', is_flag=True, default=False,
-              help='Disable displaying velocity in large letters')
+@click.option('-B', '--banner', 'showbanner', is_flag=True, default=False,
+              help='Display velocity in large letters')
 @click.option('--banner-font', 'font', metavar='figlet font', default='banner3',
-              help='figlet font to use for banner')
-@click.option('-R','--record', 'recordpath', type=click.Path(),
-              metavar='FILEPATH', help='Record session frames to FILEPATH')
+              help='Font to use for banner. (figlet)')
+@click.option('-w','--write', 'recordpath', type=click.Path(),
+              metavar='FILEPATH', help='Write session frames to FILEPATH')
 @click.option('--debug', 'debug', is_flag=True, default=False,
               help='Print lots of extra debug messages')
 @click.option('--tts', 'dotts', is_flag=True, default=False,
-              help="Disable text-to-speech")
+              help="Enable text-to-speech")
 @click.option('--tts-options', 'ttsoptions', default='rate=125',
               help='TTS engine options')
-@click.option('--output', help='Output speeds to FILEPATH')
-@click.option('--throw-speed', '-T', 'throwspeed', is_flag=True, default=False,
+@click.option('-o', '--output', help='Output speeds to FILEPATH')
+@click.option('-T', '--throw-speed', 'throwspeed', is_flag=True, default=False,
               help='Announce speed relative to player (throw speed)')
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
