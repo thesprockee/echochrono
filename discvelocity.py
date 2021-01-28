@@ -170,11 +170,8 @@ def main(questhost, refreshrate, minspeed, dotts, showbanner, tolerance, font,
             player = playerdata.get('name', 'N/A')
             players.setdefault(player, []).append(speed)
 
-            if playerdata:
-                speedmsg = '{:.2f} m/s by {} (thrown at {:.2f} m/s)'.format(
-                    speed, player or 'N/A', relativespeed)
-            else:
-                speedmsg = '{:.2f} m/s'.format(speed)
+            speedmsg = '{:.2f} m/s by {} (thrown at {:.2f} m/s)'.format(
+                speed, player or 'N/A', relativespeed)
 
             click.echo(speedmsg)
 
