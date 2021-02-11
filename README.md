@@ -6,18 +6,30 @@ velocities
 the API. Lobby and Personal discs DO NOT report velocities.*
 ## Installation
 
-```
-pip3 install -r ./requirements.txt
-```
+1. Install Python 3
+2. Run ```pip3 install -r ./requirements.txt```
+
 ## Enabling API Access
 
-This script communicates with the Echo Arena API on the Oculus Quest. To enable the API go to *Settings* then set **Enable API Access** to *Enable*. This will open tcp port 6721 on the Quest. Use the Quest's IP address as the first argument to the script.
+This script communicates with the Echo Arena API on the Oculus Quest. To enable
+the API go to *Settings* then set **Enable API Access** to *Enable*. This will
+open TCP port 6721 on the Quest. Use the Quest's IP address as the first
+argument to the script.
 
-### Usage
+## Usage
 
 ```
 ./discvelocity.py <QUEST IP>
 ```
+
+To see available options run ```./discvelocity.py --help```
+
+### Example Usage
+
+To poll a quest at 192.168.1.1.140 30 times a second, read out throws over 8
+m/s via text-to-speech and display the speed in large letters on the screen:
+
+```./discvelocity.py 192.168.1.140 --min-speed 8.0 --refresh-rate 30 --relative --tts --banner```
 
 ### Private Arena Training Mode
 
