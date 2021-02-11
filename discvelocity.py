@@ -61,7 +61,7 @@ def _relative_velocity(vel1, vel2):
 
 @click.argument('questhost', metavar='<QUEST IP>')
 @click.option('-r', '--refresh-rate', 'refreshrate', help='Disc velocity update/refresh rate in Hz',
-              type=float, metavar='HERTZ',  default=5)
+              type=float, metavar='HERTZ',  default=20)
 @click.option('-m', '--min-speed', 'minspeed',
               help='Minimum disc speed to read out', type=float,
               show_default=True, default=10.0)
@@ -79,7 +79,7 @@ def _relative_velocity(vel1, vel2):
 @click.option('--tts-options', 'ttsoptions', default='rate=125',
               help='TTS engine options')
 @click.option('-o', '--output', help='Output speeds to FILEPATH')
-@click.option('-T', '--throw-speed', 'throwspeed', is_flag=True, default=False,
+@click.option('-R', '--relative', 'throwspeed', is_flag=True, default=False,
               help='Announce speed relative to player (throw speed)')
 @click.command(context_settings=dict(show_default=True,
                                      help_option_names=['-h', '--help']))
